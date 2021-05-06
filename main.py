@@ -23,7 +23,7 @@ eightballquestion = [":8ball:Ask again later" , ":8ball:For sure!" , ":8ball:Abs
 def get_quote():
   response = requests.get("https://zenquotes.io/api/random")
   json_data = json.loads(response.text)
-  quote = json_data[0]['q'] + " -" + json_data[0]['a']
+  quote = json_data[0]['q'] + ' -' + json_data[0]['a']
   return(quote)
 
 @client.event
@@ -68,25 +68,18 @@ async def kiss(ctx , * , kisses = "themself. Weird"):
   await ctx.send(embed=embed)
 
 @client.command()
-async def roll(ctx , * , value = "N/A"):
-  if value == "6":
-    await ctx.send(random.randint(1 , 6))
-  if value == "10":
-    await ctx.send(random.randint(1 , 10))
-  if value == "100":
-    await ctx.send(random.randint(1, 100))
-  if value == "N/A":
-    await ctx.send("Put a number in!")
+async def roll(ctx , * , value = 0):
+  await ctx.send(random.randint(0 , value))
 
   
-@client.command()
-async def lovers(ctx , user : discord.Member , member : discord.Member):
+@client.command(aliases = ["compat" , "lovers"])
+async def compatibility(ctx , user : discord.Member , member : discord.Member):
   loverate = random.randint(0 , 100)
   embed = discord.Embed(
-    title = ":heart:Compatability Tester:heart:" , description = user.mention + " + " + member.mention, color  = discord.Color.green())
+  title = ":heart:Compatability Tester:heart:" , description = user.mention + " + " + member.mention, color  = discord.Color.green())
   embed.add_field(name = "Compatability Rate: " , value = str(loverate) + "%", inline = True)
   embed.set_thumbnail(url = "https://www.northeastohioparent.com/wp-content/uploads/2021/01/Cupid.png")
-  embed.set_footer(text = "Come up with a good ship name for these two lovebirds!")
+  embed.set_footer(text = "Come up with a good ship name for these two lovebirds!") 
   await ctx.send(embed=embed)
 
 @client.command()
@@ -215,7 +208,7 @@ async def announce(ctx, * , content = "No announcement."):
 
 @client.command()
 @commands.has_permissions(send_messages = True)
-async def eightball(ctx, * , content = "No question" ):
+async def ask(ctx, * , content = "No question" ):
   if content == "No question":
     await ctx.send("There was no question asked!")
   else:
@@ -287,7 +280,7 @@ async def speak(ctx , * , text = "Hi!"):
 @client.command()
 async def encourage(ctx):
   quote = get_quote()
-  await ctx.send(quote)
+  await ctx.send( '"' + quote + '"')
 
 @client.command()
 async def embed(ctx):
