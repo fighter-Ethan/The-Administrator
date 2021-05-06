@@ -28,7 +28,7 @@ def get_quote():
 
 @client.event
 async def on_ready():
-  await client.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= "over you | -help"))
+  await client.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= "over " +  str(len(client.guilds)) + " servers | -help"))
   print('Bot is ready fool')
 
 @client.command()
@@ -127,10 +127,8 @@ async def unban(ctx , * , member):
       await ctx.guild.unban(user)
       await ctx.send(member_name + " has been unbanned!")
       return
-    
+  
   await ctx.send(member + " was not found!")
-
-
 
 @client.command()
 @commands.has_permissions(manage_messages = True)
@@ -204,16 +202,25 @@ async def deny(ctx , member : discord.Member , role : discord.Role , * , reason 
 @client.command()
 @commands.has_permissions(administrator = True)
 async def announce(ctx, * , content = "No announcement."):
-  embed = discord.Embed(
+  if content == "No announcement.":
+    await ctx.send("No message specified! This will automatically delete in five seconds.")
+    await asyncio.sleep(5)
+    await ctx.channel.purge(limit = 2)
+  else:
+    embed = discord.Embed(
     title = "**ANNOUNCEMENT**" , description = f"From {ctx.author.name}" , color = discord.Color.green())
-  embed.add_field(name = "\n\u200b" , value = content , inline = True)
-  await ctx.channel.purge(limit = 1)
-  await ctx.send(embed=embed)
+    embed.add_field(name = "\n\u200b" , value = content , inline = True)
+    await ctx.channel.purge(limit = 1)
+    await ctx.send(embed=embed)
 
 @client.command()
 @commands.has_permissions(send_messages = True)
 async def eightball(ctx, * , content = "No question" ):
-  await ctx.send(random.choice(eightballquestion))
+  if content == "No question":
+    await ctx.send("There was no question asked!")
+  else:
+    await ctx.send(random.choice(eightballquestion))
+  
 
 @client.command()
 async def ping(ctx):
@@ -271,7 +278,6 @@ async def support(ctx):
 async def invite(ctx):
   await ctx.send("https://tinyurl.com/4cj3y5uw")
 
-
 @client.command()
 @commands.has_permissions(manage_messages = True)
 async def speak(ctx , * , text = "Hi!"):
@@ -282,42 +288,6 @@ async def speak(ctx , * , text = "Hi!"):
 async def encourage(ctx):
   quote = get_quote()
   await ctx.send(quote)
-
-@client.event
-async def on_message(message):
-  if client.user.id != message.author.id:
-    if 'Hello there' in message.content:
-      await message.channel.send('https://thumbs.gfycat.com/FreshGleamingFulmar-max-1mb.gif')
-    elif "Pina Colada" in message.content:
-      await message.channel.send("If you like pina coladas" + "\n\u200b" + "And gettin' caught in the rain" + "\n\u200b" + "If you're not into yoga" + "\n\u200b" + "If you have half a brain" + "\n\u200b" + "If you like makin' love at midnight" + "\n\u200b" + "In the dunes on the cape" + "\n\u200b" + "Then I'm the love that you've looked for" + "\n\u200b" + "Write to me and escape")
-    elif "Pina colada" in message.content:
-     await message.channel.send("If you like pina coladas" + "\n\u200b" + "And gettin' caught in the rain" + "\n\u200b" + "If you're not into yoga" + "\n\u200b" + "If you have half a brain" + "\n\u200b" + "If you like makin' love at midnight" + "\n\u200b" + "In the dunes on the cape" + "\n\u200b" + "Then I'm the love that you've looked for" + "\n\u200b" + "Write to me and escape")
-    elif "pina colada" in message.content:
-      await message.channel.send("If you like pina coladas" + "\n\u200b" + "And gettin' caught in the rain" + "\n\u200b" + "If you're not into yoga" + "\n\u200b" + "If you have half a brain" + "\n\u200b" + "If you like makin' love at midnight" + "\n\u200b" + "In the dunes on the cape" + "\n\u200b" + "Then I'm the love that you've looked for" + "\n\u200b" + "Write to me and escape")
-    elif "Lets get down to business" in message.content:
-      await message.channel.send("To defeat" + "\n\u200b" "The Huns!")
-    elif "Dead chat" in message.content:
-      await message.channel.send("https://tse1.mm.bing.net/th?id=OIP.Ak8t-KbA6dNJja1aIUyaEAHaE8&pid=Api&P=0&w=251&h=168")
-    elif "hard" in message.content:
-      await message.channel.send("That's what she said")
-    await client.process_commands(message)
-
-@client.command()
-async def marry(ctx , user : discord.Member , member : discord.Member):
-  await ctx.send(user.mention + ", will you marry " + member.mention + "?")
-  response = await client.wait_for('message')
-  if response.content == "Yes":
-    await ctx.send("And will you, " + member.mention +  ", marry " + user.mention + "?")
-    response2 = await client.wait_for('message')
-    if response2.content == "Yes":
-      await ctx.send("I then pronounce these two married!")
-      
-@client.command()
-async def divorce(ctx, user : discord.Member , member : discord.Member):
-  await ctx.send(user.mention + " wishes to divorce " + member.mention + ". Do you fully understand what this encompasses, " + user.mention + "?")
-  answer = await client.wait_for('message')
-  if answer.content == "Yes":
-    await ctx.send(user.mention + " has divorced " + member.mention + ".")
 
 @client.command()
 async def embed(ctx):
@@ -358,12 +328,26 @@ async def grant(ctx, user: discord.Member, role: discord.Role):
 @commands.has_permissions(ban_members = True)
 async def revoke(ctx , user: discord.Member , role : discord.Role):
   await user.remove_roles(role)
-  await ctx.send(f"Success! {user.name} has lost the {role.name} role!")
+  await ctx.send(f"Success! {user.name} no longer has the {role.name} role!")
 
-@client.command()
-async def mute(ctx , member : discord.Member , role = discord.Role , * , time = "message"):
-  await member.add_role(role)
-  await ctx.send(f"{member.name} has been muted!")
+@client.event
+async def on_message(message):
+  if client.user.id != message.author.id:
+    if 'Hello there' in message.content:
+      await message.channel.send('https://thumbs.gfycat.com/FreshGleamingFulmar-max-1mb.gif')
+    elif "Pina Colada" in message.content:
+      await message.channel.send("If you like pina coladas" + "\n\u200b" + "And gettin' caught in the rain" + "\n\u200b" + "If you're not into yoga" + "\n\u200b" + "If you have half a brain" + "\n\u200b" + "If you like makin' love at midnight" + "\n\u200b" + "In the dunes on the cape" + "\n\u200b" + "Then I'm the love that you've looked for" + "\n\u200b" + "Write to me and escape")
+    elif "Pina colada" in message.content:
+     await message.channel.send("If you like pina coladas" + "\n\u200b" + "And gettin' caught in the rain" + "\n\u200b" + "If you're not into yoga" + "\n\u200b" + "If you have half a brain" + "\n\u200b" + "If you like makin' love at midnight" + "\n\u200b" + "In the dunes on the cape" + "\n\u200b" + "Then I'm the love that you've looked for" + "\n\u200b" + "Write to me and escape")
+    elif "pina colada" in message.content:
+      await message.channel.send("If you like pina coladas" + "\n\u200b" + "And gettin' caught in the rain" + "\n\u200b" + "If you're not into yoga" + "\n\u200b" + "If you have half a brain" + "\n\u200b" + "If you like makin' love at midnight" + "\n\u200b" + "In the dunes on the cape" + "\n\u200b" + "Then I'm the love that you've looked for" + "\n\u200b" + "Write to me and escape")
+    elif "Lets get down to business" in message.content:
+      await message.channel.send("To defeat" + "\n\u200b" "The Huns!")
+    elif "Dead chat" in message.content:
+      await message.channel.send("https://tse1.mm.bing.net/th?id=OIP.Ak8t-KbA6dNJja1aIUyaEAHaE8&pid=Api&P=0&w=251&h=168")
+    elif "hard" in message.content:
+      await message.channel.send("That's what she said")
+    await client.process_commands(message)
 
 keep_alive()
 TOKEN = os.environ.get("DISCORD_BOT_SECRET")
