@@ -29,7 +29,7 @@ def get_quote():
 @client.event
 async def on_ready():
   await client.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= "over " +  str(len(client.guilds)) + " servers | -help"))
-  print('Bot is ready fool')
+  print('Bot is ready!')
 
 @client.command()
 async def help(ctx):
@@ -310,6 +310,12 @@ async def embed(ctx):
               embed.set_footer(text = emb5.content)
               await ctx.channel.purge(limit = 2)
               await ctx.send(embed=embed)
+
+
+@client.command()
+async def smack(ctx , user : discord.Member):
+  await ctx.send(f"{ctx.author.name} smacks {user.name}")
+
 
 @client.command()
 @commands.has_permissions(ban_members = True)
