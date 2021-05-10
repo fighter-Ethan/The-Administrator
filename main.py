@@ -67,6 +67,14 @@ async def kiss(ctx , * , kisses = "themself. Weird"):
   embed.set_image(url = "https://www-irishtimes-com.cdn.ampproject.org/i/s/www.irishtimes.com/polopoly_fs/1.3380702.1517841297!/image/image.jpg_gen/derivatives/landscape_620/image.jpg")
   await ctx.send(embed=embed)
 
+@client.command(aliases = ["Brazil"])
+async def brazil(ctx):
+  brazild = (random.randint(0 , 5))
+  if brazild < 4:
+    await ctx.send("*Click*" + "\n\u200b" + "\n\u200b" + "The body cannot live without the mind. -Morpheus, The Matrix")
+  elif brazild >= 4:
+    await ctx.send("**BANG!** Time to get deported!")
+
 @client.command()
 async def roll(ctx , * , value = 0):
   await ctx.send(random.randint(0 , value))
