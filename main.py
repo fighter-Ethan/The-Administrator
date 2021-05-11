@@ -19,6 +19,7 @@ client.remove_command('help')
 
 #Matrixes
 eightballquestion = [":8ball:Ask again later" , ":8ball:For sure!" , ":8ball:Absolutely not." , ":8ball:Not sure yet." , ":8ball:Perhaps." , ":8ball:Absolutely!"]
+rrmatrix = ["The body cannot live without the mind. -Morpheus, The Matrix" , "Ever have that feeling where you’re not sure if you’re awake or dreaming? -Neo, The Matrix" , "I don’t like the idea that I’m not in control of my life. -Neo, The Matrix" , "Never tell me the odds! — Han Solo, Star Wars"]
 
 def get_quote():
   response = requests.get("https://zenquotes.io/api/random")
@@ -67,14 +68,15 @@ async def kiss(ctx , * , kisses = "themself. Weird"):
   embed.set_image(url = "https://www-irishtimes-com.cdn.ampproject.org/i/s/www.irishtimes.com/polopoly_fs/1.3380702.1517841297!/image/image.jpg_gen/derivatives/landscape_620/image.jpg")
   await ctx.send(embed=embed)
 
-@client.command(aliases = ["Brazil"])
-async def brazil(ctx):
+@client.command(aliases = ["Brazil" , "brazil" , "russianroulette"])
+async def rr(ctx):
   brazild = (random.randint(0 , 5))
   if brazild < 4:
-    await ctx.send("*Click*" + "\n\u200b" + "\n\u200b" + "The body cannot live without the mind. -Morpheus, The Matrix")
-  elif brazild >= 4:
+    await ctx.send("*Click*" + "\n\u200b" + "\n\u200b" + random.choice(rrmatrix))
+  elif brazild > 4:
     await ctx.send("**BANG!** Time to get deported!")
-
+  elif brazild == 4:
+    await ctx.send("**BANG!** Time to get deported!")
 @client.command()
 async def roll(ctx , * , value = 0):
   await ctx.send(random.randint(0 , value))
