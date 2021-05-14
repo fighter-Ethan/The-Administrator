@@ -10,8 +10,6 @@ import json
 import requests
 import random
 
-#test, ignore
-
 #Commands Handler- DO NOT TOUCH
 client = commands.Bot(command_prefix="-")
 member = discord.Member
