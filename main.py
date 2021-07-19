@@ -10,16 +10,25 @@ import json
 import requests
 import random
 
+from PIL import Image
+from io import BytesIO
+
 #Commands Handler- DO NOT TOUCH
-client = commands.Bot(command_prefix="-")
+client = commands.Bot(command_prefix="-", case_insensitive = True)
 member = discord.Member
 
 #Removes the default help command. The Administrator has his own!
 client.remove_command('help')
 
+
+#Global Variables
+vtriggers = "on"
+#This means that the default setting for word triggers is "True"!
+
 #Matrixes
 eightballquestion = [":8ball:Ask again later" , ":8ball:For sure!" , ":8ball:Absolutely not." , ":8ball:Not sure yet." , ":8ball:Perhaps." , ":8ball:Absolutely!"]
-rrmatrix = ["The body cannot live without the mind. -Morpheus, The Matrix" , "Ever have that feeling where you’re not sure if you’re awake or dreaming? -Neo, The Matrix" , "I don’t like the idea that I’m not in control of my life. -Neo, The Matrix" , "Never tell me the odds! — Han Solo, Star Wars"]
+
+rrmatrix = [f"'The body cannot live without the mind.' -Morpheus, The Matrix" , f"'Ever have that feeling where you’re not sure if you’re awake or dreaming?'' -Neo, The Matrix" , f"'I don’t like the idea that I’m not in control of my life.'' -Neo, The Matrix" , f"'Never tell me the odds!' — Han Solo, Star Wars"]
 
 def get_quote():
   response = requests.get("https://zenquotes.io/api/random")
@@ -62,13 +71,8 @@ async def rules(ctx, * , content = "1) No hacking"):
   await ctx.channel.purge(limit = 1)
   await ctx.send(embed=embed)
   
-@client.command()
-async def kiss(ctx , * , kisses = "themself. Weird"):
-  embed = discord.Embed(title = f"{ctx.author.name}  kisses " + kisses + "!" , color = discord.Color.red())
-  embed.set_image(url = "https://www-irishtimes-com.cdn.ampproject.org/i/s/www.irishtimes.com/polopoly_fs/1.3380702.1517841297!/image/image.jpg_gen/derivatives/landscape_620/image.jpg")
-  await ctx.send(embed=embed)
 
-@client.command(aliases = ["Brazil" , "brazil" , "russianroulette"])
+@client.command()
 async def rr(ctx):
   brazild = (random.randint(0 , 5))
   if brazild < 4:
@@ -76,7 +80,8 @@ async def rr(ctx):
   elif brazild > 4:
     await ctx.send("**BANG!** Time to get deported!")
   elif brazild == 4:
-    await ctx.send("**BANG!** Time to get deported!")
+    await ctx.send("**BANG!**")
+
 @client.command()
 async def roll(ctx , * , value = 0):
   await ctx.send(random.randint(0 , value))
@@ -275,14 +280,13 @@ async def poll(ctx , responsetitle = "Poll" , response1 = "N/A" , response2 = "N
 
 @client.command()
 async def support(ctx):
-  await ctx.send("https://discord.gg/dDVtfmQYBv")
+  await ctx.send("https://discord.gg/VtfUCjejXq")
   
 @client.command()
 async def invite(ctx):
   await ctx.send("https://tinyurl.com/4cj3y5uw")
 
 @client.command()
-@commands.has_permissions(manage_messages = True)
 async def speak(ctx , * , text = "Hi!"):
   await ctx.channel.purge(limit=1)
   await ctx.send(text)
@@ -321,11 +325,54 @@ async def embed(ctx):
               await ctx.channel.purge(limit = 2)
               await ctx.send(embed=embed)
 
+@client.command()
+async def kiss(ctx , user : discord.Member):
+  if user.mention == "<@799087847310884904>":
+    await ctx.send("Sorry, I'm taken :(")
+  else:
+    embed = discord.Embed(title = f"{ctx.author.name}  kisses " + user.name + "!" , color = discord.Color.red())
+    embed.set_image(url = "https://i.pinimg.com/originals/18/ea/9e/18ea9e8b6b921ba7ce0081c48b802670.gif")
+    await ctx.send(embed=embed)
 
 @client.command()
-async def smack(ctx , user : discord.Member):
-  await ctx.send(f"{ctx.author.name} smacks {user.name}")
+async def hit(ctx , user : discord.Member):
+  if user.mention == "<@799087847310884904>":
+    await ctx.send("You touch me, I scream.")
+  else:
+    embed = discord.Embed(title = f"{ctx.author.name} hits {user.name}!" , description = "\n\u200b", color = discord.Color.red())
+    embed.set_image(url = "https://media1.tenor.com/images/df8af24e5756ecf4a4e8af0c9ea6499b/tenor.gif?itemid=4902917")
+    await ctx.send(embed = embed)
 
+@client.command()
+async def hug(ctx , user : discord.Member):
+  if user.mention == "<@799087847310884904>":
+    await ctx.send("Don't hug me!")
+  else:
+    embed = discord.Embed(title = f"{ctx.author.name} hugs {user.name}!" , description = "\n\u200b", color = discord.Color.red())
+    embed.set_image(url = "https://media.tenor.com/images/ecf4840ba6fac22be773e586493d5283/tenor.gif")
+    await ctx.send(embed = embed)
+
+@client.command()
+async def boop(ctx , user : discord.Member):
+  if user.mention == "<@799087847310884904>":
+    await ctx.send("Don't boop me!")
+  else:
+    embed = discord.Embed(title = f"{ctx.author.name} boops {user.name}!" , description = "\n\u200b", color = discord.Color.red())
+    embed.set_image(url = "https://media.tenor.com/images/5307e3f5a44d4d510ae58c9e76991f60/tenor.gif")
+    await ctx.send(embed = embed)
+
+@client.command()
+async def stare(ctx , user : discord.Member):
+  if user.mention == "<@799087847310884904>":
+    await ctx.send("Don't stare at me!")
+  else:
+    embed = discord.Embed(title = f"{ctx.author.name} stares at {user.name}!" , description = "\n\u200b", color = discord.Color.red())
+    embed.set_image(url = "https://media2.giphy.com/media/9V3e2mxWvD89wyw5l5/200w.gif?cid=82a1493btyeb6ypapwfw67u5yjoygqfb8mdxom6lqg15bc5x&rid=200w.gif&ct=g")
+    await ctx.send(embed = embed)
+
+@client.command()
+async def kill(ctx, user : discord.Member):
+  await ctx.send("No killing :(")
 
 @client.command()
 @commands.has_permissions(ban_members = True)
@@ -344,10 +391,6 @@ async def on_message(message):
   if client.user.id != message.author.id:
     if 'Hello there' in message.content:
       await message.channel.send('https://thumbs.gfycat.com/FreshGleamingFulmar-max-1mb.gif')
-    elif "Pina Colada" in message.content:
-      await message.channel.send("If you like pina coladas" + "\n\u200b" + "And gettin' caught in the rain" + "\n\u200b" + "If you're not into yoga" + "\n\u200b" + "If you have half a brain" + "\n\u200b" + "If you like makin' love at midnight" + "\n\u200b" + "In the dunes on the cape" + "\n\u200b" + "Then I'm the love that you've looked for" + "\n\u200b" + "Write to me and escape")
-    elif "Pina colada" in message.content:
-     await message.channel.send("If you like pina coladas" + "\n\u200b" + "And gettin' caught in the rain" + "\n\u200b" + "If you're not into yoga" + "\n\u200b" + "If you have half a brain" + "\n\u200b" + "If you like makin' love at midnight" + "\n\u200b" + "In the dunes on the cape" + "\n\u200b" + "Then I'm the love that you've looked for" + "\n\u200b" + "Write to me and escape")
     elif "pina colada" in message.content:
       await message.channel.send("If you like pina coladas" + "\n\u200b" + "And gettin' caught in the rain" + "\n\u200b" + "If you're not into yoga" + "\n\u200b" + "If you have half a brain" + "\n\u200b" + "If you like makin' love at midnight" + "\n\u200b" + "In the dunes on the cape" + "\n\u200b" + "Then I'm the love that you've looked for" + "\n\u200b" + "Write to me and escape")
     elif "Lets get down to business" in message.content:
@@ -356,7 +399,31 @@ async def on_message(message):
       await message.channel.send("https://tse1.mm.bing.net/th?id=OIP.Ak8t-KbA6dNJja1aIUyaEAHaE8&pid=Api&P=0&w=251&h=168")
     elif "hard" in message.content:
       await message.channel.send("That's what she said")
-    await client.process_commands(message)
+    elif "<@799087847310884904>" in message.content:
+      await message.channel.send("Hello!")
+  await client.process_commands(message)
+
+
+@client.command()
+async def roast(ctx, * , user: discord.Member):
+
+  roast = Image.open("first.jpeg")
+  asset = user.avatar_url_as(size = 128)
+  data = BytesIO(await asset.read())
+  pfp = Image.open(data)
+  roast.paste(pfp, (200,200))
+  roast.save("first1.jpeg")
+
+  roast2 = Image.open("second.jpeg")
+  asset2 = user.avatar_url_as(size = 128)
+  data2 = BytesIO(await asset2.read())
+  pfp2 = Image.open(data2)
+  roast2.paste(pfp2, (390,40))
+  roast2.save("second2.jpeg")
+
+  roasts = ["first1.jpeg" , "second2.jpeg" ]
+  await ctx.send(file = discord.File(random.choice(roasts)))
+
 
 keep_alive()
 TOKEN = os.environ.get("DISCORD_BOT_SECRET")
