@@ -384,24 +384,6 @@ async def revoke(ctx , user: discord.Member , role : discord.Role):
   await user.remove_roles(role)
   await ctx.send(f"Success! {user.name} no longer has the {role.name} role!")
 
-@client.event
-async def on_message(message):
-  if client.user.id != message.author.id:
-    if 'Hello there' in message.content:
-      await message.channel.send('https://thumbs.gfycat.com/FreshGleamingFulmar-max-1mb.gif')
-    elif "pina colada" in message.content:
-      await message.channel.send("If you like pina coladas" + "\n\u200b" + "And gettin' caught in the rain" + "\n\u200b" + "If you're not into yoga" + "\n\u200b" + "If you have half a brain" + "\n\u200b" + "If you like makin' love at midnight" + "\n\u200b" + "In the dunes on the cape" + "\n\u200b" + "Then I'm the love that you've looked for" + "\n\u200b" + "Write to me and escape")
-    elif "Lets get down to business" in message.content:
-      await message.channel.send("To defeat" + "\n\u200b" "The Huns!")
-    elif "Dead chat" in message.content:
-      await message.channel.send("https://tse1.mm.bing.net/th?id=OIP.Ak8t-KbA6dNJja1aIUyaEAHaE8&pid=Api&P=0&w=251&h=168")
-    elif "hard" in message.content:
-      await message.channel.send("That's what she said")
-    elif "<@799087847310884904>" in message.content:
-      await message.channel.send("Hello!")
-  await client.process_commands(message)
-
-
 @client.command()
 async def roast(ctx, * , user: discord.Member):
 
