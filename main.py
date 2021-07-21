@@ -71,16 +71,19 @@ async def rules(ctx, * , content = "1) No hacking"):
   await ctx.channel.purge(limit = 1)
   await ctx.send(embed=embed)
   
+@client.command()
+async def sourcecode(ctx):
+  await ctx.send("https://github.com/fighter-Ethan/The-Administrator")
 
 @client.command()
 async def rr(ctx):
-  brazild = (random.randint(0 , 5))
+  brazild = (random.randint(0 , 6))
   if brazild < 4:
     await ctx.send("*Click*" + "\n\u200b" + "\n\u200b" + random.choice(rrmatrix))
-  elif brazild > 4:
-    await ctx.send("**BANG!** Time to get deported!")
-  elif brazild == 4:
-    await ctx.send("**BANG!**")
+  elif brazild > 5:
+    await ctx.send("**BANG!**" + "\n\u200b" + "https://78.media.tumblr.com/80b50d102cdf69e5c172d4cbe336f10d/tumblr_mvc0oeWuPY1qd9rjto1_500.gif")
+  elif brazild == 5:
+    await ctx.send("**BANG!**" + "\n\u200b" + "https://78.media.tumblr.com/80b50d102cdf69e5c172d4cbe336f10d/tumblr_mvc0oeWuPY1qd9rjto1_500.gif")
 
 @client.command()
 async def roll(ctx , * , value = 0):
@@ -151,12 +154,7 @@ async def accept(ctx , member : discord.Member , role : discord.Role , * , reaso
   embed.set_footer(text = f"Approved by {ctx.author.name}")
   await ctx.channel.purge(limit=1)
   await ctx.send(embed=embed)
-
-@client.command()
-async def check(msg):
-  return msg.author == ctx.author and msg.channel == ctx.channel
-
-
+  
 @client.command()
 @commands.has_permissions(manage_messages = True)
 async def dmaccept(ctx , member : discord.Member):
@@ -421,7 +419,14 @@ async def roast(ctx, * , user: discord.Member):
   roast2.paste(pfp2, (390,40))
   roast2.save("second2.jpeg")
 
-  roasts = ["first1.jpeg" , "second2.jpeg" ]
+  roast3 = Image.open("third.jpeg")
+  asset3 = user.avatar_url_as(size = 128)
+  data3 = BytesIO(await asset3.read())
+  pfp3 = Image.open(data3)
+  roast3.paste(pfp3, (200,300))
+  roast3.save("third3.jpeg")
+
+  roasts = ["first1.jpeg" , "second2.jpeg" , "third3.jpeg" ]
   await ctx.send(file = discord.File(random.choice(roasts)))
 
 
