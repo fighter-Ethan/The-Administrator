@@ -11,6 +11,6 @@ https://discord.gg/VtfUCjejXq
 ## Commands
 The following is the full list of commands, for those who don't like snooping around inside the code.
 
-| Command | Description |
+| **Command** | **Description** |
 |-------- | -------|
 | help | displays the help command. |
