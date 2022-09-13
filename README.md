@@ -8,6 +8,9 @@ Today, The Administrator is used in over 13 servers and growing!
 Join this server to see The Administrator in action!
 https://discord.gg/VtfUCjejXq
 
+Current Version: 1.5.2
+Version in Progress: 1.6
+
 ## Commands
 The following is the full list of commands, for those who don't like snooping around inside the code.
 
