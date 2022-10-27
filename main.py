@@ -8,7 +8,6 @@ import os
 import json
 import requests
 import random
-
 from PIL import Image
 from io import BytesIO
 
@@ -19,13 +18,11 @@ member = discord.Member
 #Removes the default help command. The Administrator has his own!
 client.remove_command('help')
 
-
 #Global Variables
 vtriggers = "on"
 #This means that the default setting for word triggers is "True"!
 
 #Matrixes
-filter = ['chemistry' , 'Chemistry']
 
 eightballquestion = [":8ball:Ask again later" , ":8ball:For sure!" , ":8ball:Absolutely not." , ":8ball:Not sure yet." , ":8ball:Perhaps." , ":8ball:Absolutely!"]
 
@@ -42,7 +39,7 @@ async def on_message(message):
     await message.delete()
     await message.channel.send("Please do not say that. The staff have been notified.")
   
-##TEMPORARY COMMANDS
+#TEMPORARY COMMANDS
 @client.command()
 async def standwithukraine(ctx , *, user: discord.Member):
   ukr = Image.open("ua.jpeg")
@@ -58,7 +55,7 @@ async def standwithukraine(ctx , *, user: discord.Member):
 @commands.has_permissions(manage_roles = True)
 async def autorole(ctx, option = "N/A"):
   if option == "add":
-    await ctx.send("Alright! What is the ID of the  channel would you like to add it to? [NOTE: You must have Developer Mode enabled to copy channel IDs.]")
+    await ctx.send("Alright! What is the ID of the channel would you like to add it to? [NOTE: You must have Developer Mode enabled to copy channel IDs.]")
     channel_role = await client.wait_for("message")
     channel_id = int(channel_role.content)
     channel = client.get_channel(channel_id)
@@ -126,8 +123,8 @@ async def feedbackchannel(ctx, channel: discord.TextChannel):
     feed = json.dump(feed, f)
 
 @client.command()
-async def help(ctx, *, criteria = "Null"):
-  if criteria == "Null":
+async def help(ctx, *, criteria = None):
+  if criteria == None:
     embed = discord.Embed(title="Help Page", description="The list of commands for The Administrator", color = discord.Color.red())
     embed.add_field(name = "**help emotes**" , value = "Shows the help menu for the bot's expanding emote list!" , inline = False)
     embed.add_field(name = "**help admin**" , value = "Shows the help menu for moderators and server staff!" , inline = False)
@@ -204,7 +201,7 @@ async def rank(ctx):
     await ctx.send(embed = embed)
 
 @client.command()
-@commands.has_permissions(ban_members = True)
+@commands.has_permissions(manage_messages = True)
 async def prefix(ctx, new):
   guild = ctx.guild
   with open("prefix.json" , "r") as f:
@@ -218,26 +215,32 @@ async def prefix(ctx, new):
     prefix = json.dump(prefix, f)
 
 @client.event
-async def on_player_join(member):
+async def on_member_join(member):
   with open("levels.json", "r") as f:
     levels = json.load(f)
-
+    
   await update_data(levels, member)
-
-  
-  
   with open("levels.json", "w") as f:
     json.dump(levels, f)
 
+@client.event
+async def on_guild_join(guild):
+  with open('level_check.json', "r") as f:
+    level_check = json.load(f)
+  if not f'{guild.id}' in level_check:
+    level_check[f'{guild.id}'] = {}
+    level_check[f'{guild.id}']['status'] = "on"
+  with open('level_check.json', 'w') as f:
+    level_checker = json.dump(level_check, f)
+    
 @client.event
 async def on_message(message):
   with open("levels.json", "r") as f:
     levels = json.load(f)
   with open("level_check.json" , "r") as f:
-    checklevel = json.load(f)
+    level_check = json.load(f)
   guild = message.guild
-  await switch_check(message.guild)
-  if str(checklevel[f"{guild.id}"]["status"]) == "on":
+  if level_check[f"{guild.id}"]["status"] == "on":
     await update_data(levels, message.author)
     await add_experience(levels, message.author, 5)
     await level_up(levels, message.author, message.channel)
@@ -246,24 +249,14 @@ async def on_message(message):
       json.dump(levels, f)
  
     await client.process_commands(message)
-  elif str(checklevel[f"{guild.id}"]["status"]) == "off":
+  else:
     await client.process_commands(message)
-
-    
-
 
 async def update_data(levels, user):
   if not f'{user.id}' in levels:
     levels[f'{user.id}'] = {}
     levels[f'{user.id}']['experience'] = 0
     levels[f'{user.id}']['levels'] = 1
-
-async def switch_check(guild):
-  with open("level_check.json" , "r") as f:
-    checklevel = json.load(f)
-  if not f'{guild.id}' in checklevel:
-    checklevel[f"{guild.id}"] = {}
-    checklevel[f"{guild.id}"]["status"] = "off"
     
     
 async def add_experience(levels, user, exp):
@@ -283,7 +276,6 @@ async def level_up(levels, user, channel):
     await channel.send(embed=embed)
     levels[f'{user.id}']['levels'] = lvl_end
 
-
 @client.event
 async def on_guild_join(guild):
   with open("currency.json" , "r") as f:
@@ -298,7 +290,6 @@ async def set_default_currency(guild, currency):
     currency[f"{guild.id}"] = {}
     currency[f"{guild.id}"]["currency"] = "$"
   
-    
 @client.command()
 async def currency(ctx, currencyswap = "$"):
   with open("currency.json", "r") as f:
@@ -330,7 +321,6 @@ async def leveling(ctx, * ,status):
     await ctx.send("That isn't a valid expression!")
   with open("level_check.json" , "w") as f:
     checklevel = json.dump(checklevel, f)
-
   
 @client.command(aliases = ['bal'])
 async def balance(ctx, * , usered = "self"):
@@ -419,19 +409,19 @@ f"You sold a youth potion and it flopped. But at least you got " + str(currencyc
   embed = discord.Embed(title = "**Work**" , description = random.choice(workmatrix), color = discord.Color.green())
   embed.set_footer(text = f"{ctx.author.name}")
   await ctx.send(embed=embed)    
-  
+
   users[f"{user.id}"]["wallet"] += payment
-  
+
   with open("money.json" , "w") as f:
     users = json.dump(users, f)
-      
+
 @work.error
 async def work_error(ctx, error):
   if isinstance(error, commands.CommandOnCooldown):
     embed = discord.Embed(title = "**Cooldown**" , description = f"This command is on cooldown, try again in {round(error.retry_after/60)} minutes.", color = discord.Color.red())
     embed.set_footer(text = f"{ctx.author.name}")
     await ctx.send(embed=embed)
-    
+
 @client.command()
 @commands.cooldown(1, 3600, commands.BucketType.user)
 async def rob(ctx, victim : discord.Member):
@@ -490,7 +480,6 @@ async def slots(ctx , amt = 0):
   user = ctx.author
   with open("money.json" , "r") as f:
     users = json.load(f)
-  
   
   embed = discord.Embed(title = "**Slot Machine**" , description = f"You are waging " + str(currencycheck) + f"**{amt}.**" , color = discord.Color.blue())
   embed.add_field(name = slot1 + " "+slot2 + " "+slot3 , value = "\n\u200b" , inline = False)
@@ -565,7 +554,6 @@ async def deposit(ctx, amt):
   with open("money.json" , "w") as f:
     users = json.dump(users, f)
 
-
 @client.command(aliases = ['with'])
 async def withdraw(ctx, amt):
   await open_account(ctx.author)
@@ -607,27 +595,6 @@ async def store(ctx , action = "shop"):
     store[f"{guild.id}"]['items'] = "Nothing here!"
     store[f"{guild.id}"]['descriptions'] = "Not available"
     store[f"{guild.id}"]['price'] = "N/A"
-    
-""" if action == "shop":  
-    embed = discord.Embed(title = "**Store**" , color = discord.Color.blue())
-    embed.add_field(name = "**" + store[f"{guild.id}"]['items'] + "** - " + store[f"{guild.id}"]['price'] , value = store[f"{guild.id}"]['descriptions'], inline = False)
-    await ctx.send(embed=embed)
-  elif action == "create":
-    await ctx.send("What would you like the name of your item to be?")
-    if ctx.author != ctx.author:
-      return
-    elif ctx.author == ctx.author:
-      itemname = await client.wait_for("message")
-      store[f"{guild.id}"]['items'] = itemname.content
-      await ctx.send("How much will this cost?")
-      itemprice = await client.wait_for("message")
-      store[f"{guild.id}"]['price'] = itemprice.content
-      await ctx.send("What should the description be?")
-      itemdesc = await client.wait_for("message")
-      store[f"{guild.id}"]['descriptions'] = itemdesc.content
-      await ctx.send("Shop Item Created!")
-      with open("store.json" , "w") as f:
-        users = json.dump(store, f)"""
 
 @client.command(aliases = ["inv"])
 async def inventory(ctx):
@@ -799,20 +766,22 @@ async def deny(ctx , member : discord.Member , role : discord.Role , * , reason 
   await ctx.send(embed=embed)
     
 @client.command()
-@commands.has_permissions(administrator = True)
-async def announce(ctx, * , content = "No announcement."):
-  if content == "No announcement.":
-    await ctx.send("No message specified! This will automatically delete in five seconds.")
+@commands.has_permissions(manage_messages = True)
+async def announce(ctx, * , content = None):
+  if content == None:
+    await ctx.send("🚨No message specified! This will automatically delete in five seconds.🚨")
     await asyncio.sleep(5)
     await ctx.channel.purge(limit = 2)
   else:
     embed = discord.Embed(
-    title = "**ANNOUNCEMENT**" , description = f"From {ctx.author.name}" , color = discord.Color.green())
-    embed.add_field(name = "\n\u200b" , value = content , inline = True)
+    title = "**Announcement**" ,
+    description = content,
+    color = discord.Color.green())
+    embed.set_footer(text = f'Announcement from {ctx.author.name}')
     await ctx.channel.purge(limit = 1)
     await ctx.send(embed=embed)
 
-@client.command()
+@client.command(aliases = ['eightball'])
 @commands.has_permissions(send_messages = True)
 async def ask(ctx, * , content = "No question" ):
   if content == "No question":
@@ -820,7 +789,6 @@ async def ask(ctx, * , content = "No question" ):
   else:
     await ctx.send(random.choice(eightballquestion))
   
-
 @client.command()
 async def ping(ctx):
     await ctx.send('Pong! {0}'.format(round(client.latency * 1000 , 0)) + "ms")
@@ -975,50 +943,6 @@ async def rr(ctx, mode = "view"):
           roles_emojis = await client.wait_for("message")
           if ctx.author == ctx.author:
             return
-
-@client.command()
-async def log(ctx, status = None, channel_log = None):
-  guild = ctx.guild
-  with open("logging.json", "r") as f:
-    logging = json.load(f)
-    
-  if not f'{guild.id}' in logging:
-    logging[f'{guild.id}'] = {}
-    logging[f'{guild.id}']['status'] = "on"
-    if channel_log != None:
-      logging[f'{guild.id}']['channel_log'] = channel_log
-    
-  if status == "on":
-    logging[f'{guild.id}']['status'] = "on"
-    await ctx.send("Status of logging set to on!")
-    
-  elif status == "off":
-    logging[f'{guild.id}']['status'] = "off"
-    await ctx.send("Status of logging set to off!")
-    
-  with open("logging.json" , "w") as f:
-    logging = json.dump(logging, f)
-
-
-@client.event
-async def on_message_delete(message):
-  with open("logging.json", "r") as f:
-    logging = json.load(f)
-    
-  guild = message.guild
-  author : message.author #Defines the message author
-  content : message.content #Defines the message content
-  channel : message.channel #Defines the message channel
-  channel_logs = (logging[f'{guild.id}']['channel_log'])
-
-  if logging[f'{guild.id}']['status'] == "on":
-    
-    await channel_logs.send("<@{}>'s message was deleted. Message Content: {}".format(message.author.id, message.content))
-  if logging[f'{guild.id}']['status'] == "off":
-    return
-  await client.process_commands(message)
-
-  
   
             
 TOKEN = os.environ.get("DISCORD_BOT_SECRET")
