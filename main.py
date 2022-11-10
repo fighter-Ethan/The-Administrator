@@ -20,108 +20,97 @@ client.remove_command('help')
 
 #Global Variables
 vtriggers = "on"
-#This means that the default setting for word triggers is "True"!
 
-#Matrixes
-
-eightballquestion = [":8ball:Ask again later" , ":8ball:For sure!" , ":8ball:Absolutely not." , ":8ball:Not sure yet." , ":8ball:Perhaps." , ":8ball:Absolutely!"]
+#Matrices
+eightballquestion = [":8ball:Ask again later" , ":8ball:For sure!" , ":8ball:Absolutely not." , ":8ball:Not sure yet." , ":8ball:Perhaps." , ":8ball:Absolutely!", ":8ball:Outlook good"]
 
 rrmatrix = [f"'The body cannot live without the mind.' -Morpheus, The Matrix" , f"'Ever have that feeling where you’re not sure if you’re awake or dreaming?'' -Neo, The Matrix" , f"'I don’t like the idea that I’m not in control of my life.'' -Neo, The Matrix" , f"'Never tell me the odds!' - Han Solo, Star Wars", f"'It's time to spin the chamber, Boris.' -DeAngelo, The Office (US)", f"'Do not throw away your shot...' -Alexander Hamilton, Hamilton" , f"'Guns. Lots of guns.' -Neo, The Matrix"]
 
+#Initiates the Client
 @client.event
 async def on_ready():
   await client.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name= str(len(client.guilds)) + " servers | -help"))
   print('Bot is ready!')
 
+#Client Events
 @client.event
-async def on_message(message):
-  if 'psychology' in message.content:
-    await message.delete()
-    await message.channel.send("Please do not say that. The staff have been notified.")
-  
-#TEMPORARY COMMANDS
-@client.command()
-async def standwithukraine(ctx , *, user: discord.Member):
-  ukr = Image.open("ua.jpeg")
-  asset = user.avatar_url_as(size = 128)
-  data = BytesIO(await asset.read())
-  ua1 = Image.open(data)
-  ukr.paste(ua1, (230,160))
-  ukr.save("uak1.jpeg")
-  await ctx.send(file = discord.File("uak1.jpeg"))
-  await ctx.send("Please also consider making a donation to support the people of Ukraine: https://bit.ly/3N35c2I")
-
-@client.command()
-@commands.has_permissions(manage_roles = True)
-async def autorole(ctx, option = "N/A"):
-  if option == "add":
-    await ctx.send("Alright! What is the ID of the channel would you like to add it to? [NOTE: You must have Developer Mode enabled to copy channel IDs.]")
-    channel_role = await client.wait_for("message")
-    channel_id = int(channel_role.content)
-    channel = client.get_channel(channel_id)
-    await ctx.send(f"Sending the autorole to **{channel}**.")
-    await ctx.send("Great! Now, what is the name of the role you wish to add?")
-    role_id_raw = await client.wait_for("message")
-    role = discord.utils.get(ctx.guild.roles, name= str(role_id_raw.content))
-    await ctx.send(f"Using **{role}** .")
-    await ctx.send("What emote would you like to use?")
-    emote = await client.wait_for("message")
-    await ctx.send(f"Your selected emote is {emote.content}.")
-    await ctx.send("What hex color would you like your embed to have?")
-    hex = await client.wait_for("message")
-    await ctx.send("And what is the title of your embed?")
-    title_embed = await client.wait_for("message")
-    await ctx.send("All set!")
-    embed = discord.Embed(title = f"{title_embed.content}", description = f"{role}", color = str(hex.content)())
-    await channel.send(embed=embed)
+async def on_member_join(member):
+  with open("levels.json", "r") as f:
+    levels = json.load(f)
     
+  await update_data(levels, member)
+  with open("levels.json", "w") as f:
+    json.dump(levels, f)
+
+@client.event
+async def on_guild_join(guild):
+  with open('level_check.json', "r") as f:
+    level_check = json.load(f)
+  if not f'{guild.id}' in level_check:
+    level_check[f'{guild.id}'] = {}
+    level_check[f'{guild.id}']['status'] = "on"
+  with open('level_check.json', 'w') as f:
+    level_checker = json.dump(level_check, f)
+
+#Bug Fixes Being Worked On
+"""@client.event
+async def on_message(message):
+  with open("levels.json", "r") as f:
+    levels = json.load(f)
+  with open("level_check.json" , "r") as f:
+    level_check = json.load(f)
+  guild = message.guild
+  if level_check[f"{guild.id}"]["status"] == "on":
+    await update_data(levels, message.author)
+    await add_experience(levels, message.author, 5)
+    await level_up(levels, message.author, message.channel)
   
-@client.command()
-async def suggestionchannel(ctx, channel: discord.TextChannel):
-  guild = ctx.guild
-  with open("suggestion.json", "r") as f:
-    suggest = json.load(f)
-  await ctx.send(f"Success! Your suggestion channel has been set to {channel.mention}.")
-  channel == channel.id
-  if not f'{guild.id}' in suggest:
-    suggest[f'{guild.id}'] = {}
-    suggest[f'{guild.id}']['channel'] = "None"
-  suggest[f'{guild.id}']['channel'] = f'{channel.id}'
-  with open("suggestion.json" , "w") as f:
-    suggest = json.dump(suggest, f)
+    with open("levels.json", "w") as f:
+      json.dump(levels, f)
+ 
+    await client.process_commands(message)
+  else:
+    await client.process_commands(message)
 
-@client.command()
-async def suggest(ctx, * , suggestion = "N/A"):
-  with open("suggestion.json", "r") as f:
-    suggest = json.load(f)
-  guild = ctx.guild
-  chan = int(suggest[f'{guild.id}']['channel'])
-  channel = client.get_channel(chan)
-  if suggestion == "N/A":
-    await ctx.send("Suggestion cannot be empty!")
-    await asyncio.sleep(2)
-  elif suggestion != "N/A":
-    embed = discord.Embed(title = "Suggestion" , description = f"*Made by {ctx.author.name}*" , color = discord.Color.blue())
-    embed.add_field(name = f"{suggestion}" , value = "\n\u200b", inline = True)
-    await ctx.channel.purge(limit = 1)
-    message = await channel.send(embed=embed)
-    await message.add_reaction("✅")
-    await message.add_reaction("❌")
+async def update_data(levels, user):
+  if not f'{user.id}' in levels:
+    levels[f'{user.id}'] = {}
+    levels[f'{user.id}']['experience'] = 0
+    levels[f'{user.id}']['levels'] = 1
+    
+    
+async def add_experience(levels, user, exp):
+  if user.id != "897139608196894750":
+    levels[f'{user.id}']['experience'] += exp
 
-@client.command()
-async def feedbackchannel(ctx, channel: discord.TextChannel):
-  guild = ctx.guild
-  with open("feedback.json", "r") as f:
-    feed = json.load(f)
-  await ctx.send(f"Success! Your feedback channel has been set to {channel.mention}.")
-  channel == channel.id
-  if not f'{guild.id}' in feed:
-    feed[f'{guild.id}'] = {}
-    feed[f'{guild.id}']['channel'] = "None"
-  feed[f'{guild.id}']['channel'] = f'{channel.id}'
-  with open("feedback.json" , "w") as f:
-    feed = json.dump(feed, f)
 
+async def level_up(levels, user, channel):
+  experience = levels[f'{user.id}']['experience']
+  lvl_start = levels[f'{user.id}']['levels']
+  lvl_end = int(experience ** (1/4))
+
+  if lvl_start < lvl_end:
+    await channel.send(f"{user.mention}")
+    embed = discord.Embed(title = f"**{user.name} has leveled up!**" , description = f"{user.name} is now level {lvl_end}." , color = discord.Color.green())
+    embed.set_image(url = "https://c.tenor.com/HJOCluQ5n7kAAAAC/party-time-michael-scott.gif")
+    await channel.send(embed=embed)
+    levels[f'{user.id}']['levels'] = lvl_end"""
+
+@client.event
+async def on_guild_join(guild):
+  with open("currency.json" , "r") as f:
+    currency = json.load(f)
+  await set_default_currency(guild, currency)
+
+  with open("currency.json", "w") as f:
+    json.dump(currency, f)
+
+async def set_default_currency(guild, currency):
+  if not f"{guild.id}" in currency:
+    currency[f"{guild.id}"] = {}
+    currency[f"{guild.id}"]["currency"] = "$"
+
+#The Administrator's Help Command!
 @client.command()
 async def help(ctx, *, criteria = None):
   if criteria == None:
@@ -180,7 +169,87 @@ async def help(ctx, *, criteria = None):
     embed.add_field(name = "**remove_money [user] [amount]**" , value = "Removes the amount specified to the bank account of the targeted user. Only works if the author has manage message permissions." , inline = False)
     await ctx.send(embed = embed)
 
+#Role Assignment Commands
 @client.command()
+@commands.has_permissions(manage_roles = True)
+async def autorole(ctx, option = "N/A"):
+  if option == "add":
+    await ctx.send("Alright! What is the ID of the channel would you like to add it to? [NOTE: You must have Developer Mode enabled to copy channel IDs.]")
+    channel_role = await client.wait_for("message")
+    channel_id = int(channel_role.content)
+    channel = client.get_channel(channel_id)
+    await ctx.send(f"Sending the autorole to **{channel}**.")
+    await ctx.send("Great! Now, what is the name of the role you wish to add?")
+    role_id_raw = await client.wait_for("message")
+    role = discord.utils.get(ctx.guild.roles, name= str(role_id_raw.content))
+    await ctx.send(f"Using **{role}** .")
+    await ctx.send("What emote would you like to use?")
+    emote = await client.wait_for("message")
+    await ctx.send(f"Your selected emote is {emote.content}.")
+    await ctx.send("What hex color would you like your embed to have?")
+    hex = await client.wait_for("message")
+    await ctx.send("And what is the title of your embed?")
+    title_embed = await client.wait_for("message")
+    await ctx.send("All set!")
+    embed = discord.Embed(title = f"{title_embed.content}", description = f"{role}", color = str(hex.content)())
+    await channel.send(embed=embed)
+
+@client.command()
+@commands.has_permissions(manage_roles=True)
+async def rr(ctx, mode = "view"):
+  if mode == "view":
+    await ctx.send("Please try again.")
+  elif mode == "add":
+    await ctx.send("Where would you like to add reaction roles?")
+    channel_roles_raw = await client.wait_for("message")
+    if ctx.author == ctx.author:
+      channel_roles = str(channel_roles_raw.content)
+      await ctx.send(f"Alright! We will send the reaction role to #{channel_roles}. What would you like the embed title to be?")
+      embed_title = await client.wait_for("message")
+      if ctx.author == ctx.author:
+        await ctx.send("And what color would you like for the embed? Type 'none' to have no color.")
+        embed_color = await client.wait_for("message")
+        if ctx.author == ctx.author:
+          await ctx.send("Perfect. Now, please add the emote you wish to be the reaction and then the role you want associated with it! Please only do one  at a time. Ex: :pleading_face:, then @RandomRole")
+          roles_emojis = await client.wait_for("message")
+          if ctx.author == ctx.author:
+            return
+
+#Suggestion Commands
+@client.command()
+async def suggestionchannel(ctx, channel: discord.TextChannel):
+  guild = ctx.guild
+  with open("suggestion.json", "r") as f:
+    suggest = json.load(f)
+  await ctx.send(f"Success! Your suggestion channel has been set to {channel.mention}.")
+  channel == channel.id
+  if not f'{guild.id}' in suggest:
+    suggest[f'{guild.id}'] = {}
+    suggest[f'{guild.id}']['channel'] = "None"
+  suggest[f'{guild.id}']['channel'] = f'{channel.id}'
+  with open("suggestion.json" , "w") as f:
+    suggest = json.dump(suggest, f)
+
+@client.command()
+async def suggest(ctx, * , suggestion = "N/A"):
+  with open("suggestion.json", "r") as f:
+    suggest = json.load(f)
+  guild = ctx.guild
+  chan = int(suggest[f'{guild.id}']['channel'])
+  channel = client.get_channel(chan)
+  if suggestion == "N/A":
+    await ctx.send("Suggestion cannot be empty!")
+    await asyncio.sleep(2)
+  elif suggestion != "N/A":
+    embed = discord.Embed(title = "Suggestion" , description = f"*Made by {ctx.author.name}*" , color = discord.Color.blue())
+    embed.add_field(name = f"{suggestion}" , value = "\n\u200b", inline = True)
+    await ctx.channel.purge(limit = 1)
+    message = await channel.send(embed=embed)
+    await message.add_reaction("✅")
+    await message.add_reaction("❌")
+
+#Fixing Bugs w/this
+"""@client.command()
 async def rank(ctx):
   await switch_check(ctx.guild)
   guild = ctx.guild
@@ -198,9 +267,9 @@ async def rank(ctx):
     embed.add_field(name = "**Level**" , value = str(levels[f'{user.id}']['levels']), inline = False)
     embed.add_field(name = "**Exp**" , value = str(levels[f'{user.id}']['experience']), inline = False)
     embed.set_thumbnail(url = user.avatar_url)
-    await ctx.send(embed = embed)
+    await ctx.send(embed = embed)"""
 
-@client.command()
+"""@client.command()
 @commands.has_permissions(manage_messages = True)
 async def prefix(ctx, new):
   guild = ctx.guild
@@ -212,100 +281,9 @@ async def prefix(ctx, new):
   await ctx.send(f"Changed this server's bot prefix to `{new}`.")
   command_prefix2 = prefix[f"{guild.id}"]["prefix"]
   with open("prefix.json", "w") as f:
-    prefix = json.dump(prefix, f)
+    prefix = json.dump(prefix, f)"""
 
-@client.event
-async def on_member_join(member):
-  with open("levels.json", "r") as f:
-    levels = json.load(f)
-    
-  await update_data(levels, member)
-  with open("levels.json", "w") as f:
-    json.dump(levels, f)
-
-@client.event
-async def on_guild_join(guild):
-  with open('level_check.json', "r") as f:
-    level_check = json.load(f)
-  if not f'{guild.id}' in level_check:
-    level_check[f'{guild.id}'] = {}
-    level_check[f'{guild.id}']['status'] = "on"
-  with open('level_check.json', 'w') as f:
-    level_checker = json.dump(level_check, f)
-    
-@client.event
-async def on_message(message):
-  with open("levels.json", "r") as f:
-    levels = json.load(f)
-  with open("level_check.json" , "r") as f:
-    level_check = json.load(f)
-  guild = message.guild
-  if level_check[f"{guild.id}"]["status"] == "on":
-    await update_data(levels, message.author)
-    await add_experience(levels, message.author, 5)
-    await level_up(levels, message.author, message.channel)
-  
-    with open("levels.json", "w") as f:
-      json.dump(levels, f)
- 
-    await client.process_commands(message)
-  else:
-    await client.process_commands(message)
-
-async def update_data(levels, user):
-  if not f'{user.id}' in levels:
-    levels[f'{user.id}'] = {}
-    levels[f'{user.id}']['experience'] = 0
-    levels[f'{user.id}']['levels'] = 1
-    
-    
-async def add_experience(levels, user, exp):
-  if user.id != "897139608196894750":
-    levels[f'{user.id}']['experience'] += exp
-
-
-async def level_up(levels, user, channel):
-  experience = levels[f'{user.id}']['experience']
-  lvl_start = levels[f'{user.id}']['levels']
-  lvl_end = int(experience ** (1/4))
-
-  if lvl_start < lvl_end:
-    await channel.send(f"{user.mention}")
-    embed = discord.Embed(title = f"**{user.name} has leveled up!**" , description = f"{user.name} is now level {lvl_end}." , color = discord.Color.green())
-    embed.set_image(url = "https://c.tenor.com/HJOCluQ5n7kAAAAC/party-time-michael-scott.gif")
-    await channel.send(embed=embed)
-    levels[f'{user.id}']['levels'] = lvl_end
-
-@client.event
-async def on_guild_join(guild):
-  with open("currency.json" , "r") as f:
-    currency = json.load(f)
-  await set_default_currency(guild, currency)
-
-  with open("currency.json", "w") as f:
-    json.dump(currency, f)
-
-async def set_default_currency(guild, currency):
-  if not f"{guild.id}" in currency:
-    currency[f"{guild.id}"] = {}
-    currency[f"{guild.id}"]["currency"] = "$"
-  
-@client.command()
-async def currency(ctx, currencyswap = "$"):
-  with open("currency.json", "r") as f:
-    currency = json.load(f)
-    guild = ctx.guild
-    currency[f"{guild.id}"]["currency"] = currencyswap
-  with open("currency.json", "w") as f:
-    json.dump(currency, f)
-  await ctx.send(f"Success! You have changed your server's currency to {currencyswap}.")
-
-async def check_currency():
-  with open("currency.json", "r") as f:
-    currency = json.load(f)
-    return currency
-
-@client.command()
+"""@client.command()
 @commands.has_permissions(manage_messages = True)
 async def leveling(ctx, * ,status):
   with open("level_check.json" , "r") as f:
@@ -320,7 +298,23 @@ async def leveling(ctx, * ,status):
   else:
     await ctx.send("That isn't a valid expression!")
   with open("level_check.json" , "w") as f:
-    checklevel = json.dump(checklevel, f)
+    checklevel = json.dump(checklevel, f)"""
+
+#Economy Commands
+@client.command()
+async def currency(ctx, currencyswap = "$"):
+  with open("currency.json", "r") as f:
+    currency = json.load(f)
+    guild = ctx.guild
+    currency[f"{guild.id}"]["currency"] = currencyswap
+  with open("currency.json", "w") as f:
+    json.dump(currency, f)
+  await ctx.send(f"Success! You have changed your server's currency to {currencyswap}.")
+
+async def check_currency():
+  with open("currency.json", "r") as f:
+    currency = json.load(f)
+    return currency
   
 @client.command(aliases = ['bal'])
 async def balance(ctx, * , usered = "self"):
@@ -339,8 +333,6 @@ async def balance(ctx, * , usered = "self"):
   embed.add_field(name = "**Wallet**" , value = str(currencycheck) + str(wallet_bank))
   embed.add_field(name = "**Bank**" , value = str(currencycheck) + str(bank_bank))
   await ctx.send(embed=embed)
-
-  
 
 async def open_account(user):
   users = await get_bank_data()
@@ -659,6 +651,8 @@ async def remove_money(ctx , user : discord.Member , amt):
   with open("money.json", "w") as f:
     users = json.dump(users, f)
 
+
+#General Server Commands
 @client.command()
 @commands.has_permissions(manage_messages = True)
 async def rules(ctx, * , content = "1) No hacking"):
@@ -667,12 +661,16 @@ async def rules(ctx, * , content = "1) No hacking"):
   embed.add_field(name = "\n\u200b" , value = "\n\u200b" + content, inline = True)
   await ctx.channel.purge(limit = 1)
   await ctx.send(embed=embed)
-  
-  
+
 @client.command()
 async def sourcecode(ctx):
   await ctx.send("https://github.com/fighter-Ethan/The-Administrator")
 
+@client.command()
+async def ping(ctx):
+    await ctx.send('Pong! {0}'.format(round(client.latency * 1000 , 0)) + "ms")
+
+#Fun Commands
 @client.command()
 async def rroul(ctx):
   brazild = (random.randint(0 , 6))
@@ -699,22 +697,86 @@ async def compatibility(ctx , user : discord.Member , member : discord.Member):
   await ctx.send(embed=embed)
 
 @client.command()
+async def avatar(ctx , member : discord.Member):
+  embed = discord.Embed(title = member.name + "'s discord Avatar" , color = discord.Color.red())
+  embed.set_image(url = member.avatar_url)
+  await ctx.send(embed=embed)
+
+@client.command(aliases = ['eightball'])
+@commands.has_permissions(send_messages = True)
+async def ask(ctx, * , content = "No question" ):
+  if content == "No question":
+    await ctx.send("There was no question asked!")
+  else:
+    await ctx.send(random.choice(eightballquestion))
+
+@client.command()
+async def speak(ctx , * , text = "Hi!"):
+  await ctx.channel.purge(limit=1)
+  await ctx.send(text)
+
+@client.command()
+async def kiss(ctx , user : discord.Member):
+  if user.mention == "<@799087847310884904>":
+    await ctx.send("Sorry, I'm taken :(")
+  else:
+    embed = discord.Embed(title = f"{ctx.author.name}  kisses " + user.name + "!" , color = discord.Color.red())
+    embed.set_image(url = "https://i.pinimg.com/originals/18/ea/9e/18ea9e8b6b921ba7ce0081c48b802670.gif")
+    await ctx.send(embed=embed)
+
+@client.command()
+async def hit(ctx , user : discord.Member):
+  if user.mention == "<@799087847310884904>":
+    await ctx.send("You touch me, I scream.")
+  else:
+    embed = discord.Embed(title = f"{ctx.author.name} hits {user.name}!" , description = "\n\u200b", color = discord.Color.red())
+    embed.set_image(url = "https://media1.tenor.com/images/df8af24e5756ecf4a4e8af0c9ea6499b/tenor.gif?itemid=4902917")
+    await ctx.send(embed = embed)
+
+@client.command()
+async def hug(ctx , user : discord.Member):
+  hugmatrix = ["https://www.icegif.com/wp-content/uploads/icegif-6.gif" , ""]
+  if user.mention == "<@799087847310884904>":
+    await ctx.send("Don't hug me! I don't like hugs :(")
+  else:
+    embed = discord.Embed(title = f"{ctx.author.name} hugs {user.name}!" , description = "\n\u200b", color = discord.Color.red())
+    embed.set_image(url = "https://media.tenor.com/images/ecf4840ba6fac22be773e586493d5283/tenor.gif")
+    await ctx.send(embed = embed)
+
+@client.command()
+async def boop(ctx , user : discord.Member):
+  if user.mention == "<@799087847310884904>":
+    await ctx.send("Don't boop me! :(")
+  else:
+    embed = discord.Embed(title = f"{ctx.author.name} boops {user.name}!" , description = "\n\u200b", color = discord.Color.red())
+    embed.set_image(url = "https://media.tenor.com/images/5307e3f5a44d4d510ae58c9e76991f60/tenor.gif")
+    await ctx.send(embed = embed)
+
+@client.command()
+async def stare(ctx , user : discord.Member):
+  starematrix = ["https://media4.giphy.com/media/aXUU30cDBa9tVQz37V/giphy-downsized-large.gif" , "https://media2.giphy.com/media/9V3e2mxWvD89wyw5l5/200w.gif?cid=82a1493btyeb6ypapwfw67u5yjoygqfb8mdxom6lqg15bc5x&rid=200w.gif&ct=g" , "https://media3.giphy.com/media/BY8ORoRpnJDXeBNwxg/200.gif"]
+  if user.mention == "<@799087847310884904>":
+    await ctx.send("Don't stare at me!")
+  else:
+    embed = discord.Embed(title = f"{ctx.author.name} stares at {user.name}!" , description = "\n\u200b", color = discord.Color.red())
+    embed.set_image(url = random.choice(starematrix))
+    await ctx.send(embed = embed)
+
+@client.command()
+async def kill(ctx, user : discord.Member):
+  await ctx.send("No killing :(")
+
+#Administration Commands
+@client.command()
 @commands.has_permissions(manage_messages = True)
 async def purge(ctx, amount = 1):
 	await ctx.channel.purge(limit=amount + 1)
-
 
 @client.command()
 @commands.has_permissions(kick_members = True)
 async def kick(ctx, member: discord.Member, * , reason = "N/A"):
 	await member.kick(reason = reason)
 	await ctx.send(member.name + " was kicked from the server because: " + reason)
-
-@client.command()
-async def avatar(ctx , member : discord.Member):
-  embed = discord.Embed(title = member.name + "'s discord Avatar" , color = discord.Color.red())
-  embed.set_image(url = member.avatar_url)
-  await ctx.send(embed=embed)
 
 @client.command()
 @commands.has_permissions(ban_members=True)
@@ -781,18 +843,6 @@ async def announce(ctx, * , content = None):
     await ctx.channel.purge(limit = 1)
     await ctx.send(embed=embed)
 
-@client.command(aliases = ['eightball'])
-@commands.has_permissions(send_messages = True)
-async def ask(ctx, * , content = "No question" ):
-  if content == "No question":
-    await ctx.send("There was no question asked!")
-  else:
-    await ctx.send(random.choice(eightballquestion))
-  
-@client.command()
-async def ping(ctx):
-    await ctx.send('Pong! {0}'.format(round(client.latency * 1000 , 0)) + "ms")
-
 @client.command()
 async def poll(ctx , responsetitle = "Poll" , response1 = "N/A" , response2 = "N/A" , response3 = "N/A" , response4 = "N/A"):
   if response1 == "N/A" or response2 == "N/A":
@@ -827,11 +877,6 @@ async def invite(ctx):
   await ctx.send("https://discord.com/api/oauth2/authorize?client_id=799087847310884904&permissions=8&scope=bot%20applications.commands")
 
 @client.command()
-async def speak(ctx , * , text = "Hi!"):
-  await ctx.channel.purge(limit=1)
-  await ctx.send(text)
-
-@client.command()
 async def embed(ctx):
   if ctx.guild == ctx.guild:
     await ctx.send("Alright! Let's start with the title. Please enter your title. It will automatically be bolded, so don't worry about that!")
@@ -861,57 +906,6 @@ async def embed(ctx):
               await ctx.send(embed=embed)
 
 @client.command()
-async def kiss(ctx , user : discord.Member):
-  if user.mention == "<@799087847310884904>":
-    await ctx.send("Sorry, I'm taken :(")
-  else:
-    embed = discord.Embed(title = f"{ctx.author.name}  kisses " + user.name + "!" , color = discord.Color.red())
-    embed.set_image(url = "https://i.pinimg.com/originals/18/ea/9e/18ea9e8b6b921ba7ce0081c48b802670.gif")
-    await ctx.send(embed=embed)
-
-@client.command()
-async def hit(ctx , user : discord.Member):
-  if user.mention == "<@799087847310884904>":
-    await ctx.send("You touch me, I scream.")
-  else:
-    embed = discord.Embed(title = f"{ctx.author.name} hits {user.name}!" , description = "\n\u200b", color = discord.Color.red())
-    embed.set_image(url = "https://media1.tenor.com/images/df8af24e5756ecf4a4e8af0c9ea6499b/tenor.gif?itemid=4902917")
-    await ctx.send(embed = embed)
-
-@client.command()
-async def hug(ctx , user : discord.Member):
-  hugmatrix = ["https://www.icegif.com/wp-content/uploads/icegif-6.gif" , ""]
-  if user.mention == "<@799087847310884904>":
-    await ctx.send("Don't hug me! I don't like hugs :(")
-  else:
-    embed = discord.Embed(title = f"{ctx.author.name} hugs {user.name}!" , description = "\n\u200b", color = discord.Color.red())
-    embed.set_image(url = "https://media.tenor.com/images/ecf4840ba6fac22be773e586493d5283/tenor.gif")
-    await ctx.send(embed = embed)
-
-@client.command()
-async def boop(ctx , user : discord.Member):
-  if user.mention == "<@799087847310884904>":
-    await ctx.send("Don't boop me! :(")
-  else:
-    embed = discord.Embed(title = f"{ctx.author.name} boops {user.name}!" , description = "\n\u200b", color = discord.Color.red())
-    embed.set_image(url = "https://media.tenor.com/images/5307e3f5a44d4d510ae58c9e76991f60/tenor.gif")
-    await ctx.send(embed = embed)
-
-@client.command()
-async def stare(ctx , user : discord.Member):
-  starematrix = ["https://media4.giphy.com/media/aXUU30cDBa9tVQz37V/giphy-downsized-large.gif" , "https://media2.giphy.com/media/9V3e2mxWvD89wyw5l5/200w.gif?cid=82a1493btyeb6ypapwfw67u5yjoygqfb8mdxom6lqg15bc5x&rid=200w.gif&ct=g" , "https://media3.giphy.com/media/BY8ORoRpnJDXeBNwxg/200.gif"]
-  if user.mention == "<@799087847310884904>":
-    await ctx.send("Don't stare at me!")
-  else:
-    embed = discord.Embed(title = f"{ctx.author.name} stares at {user.name}!" , description = "\n\u200b", color = discord.Color.red())
-    embed.set_image(url = random.choice(starematrix))
-    await ctx.send(embed = embed)
-
-@client.command()
-async def kill(ctx, user : discord.Member):
-  await ctx.send("No killing :(")
-
-@client.command()
 @commands.has_permissions(ban_members = True)
 async def grant(ctx, user: discord.Member, role: discord.Role):
     await user.add_roles(role)
@@ -922,27 +916,6 @@ async def grant(ctx, user: discord.Member, role: discord.Role):
 async def revoke(ctx , user: discord.Member , role : discord.Role):
   await user.remove_roles(role)
   await ctx.send(f"Success! {user.name} no longer has the {role.name} role!")
-
-@client.command()
-@commands.has_permissions(manage_roles=True)
-async def rr(ctx, mode = "view"):
-  if mode == "view":
-    await ctx.send("Please try again.")
-  elif mode == "add":
-    await ctx.send("Where would you like to add reaction roles?")
-    channel_roles_raw = await client.wait_for("message")
-    if ctx.author == ctx.author:
-      channel_roles = str(channel_roles_raw.content)
-      await ctx.send(f"Alright! We will send the reaction role to #{channel_roles}. What would you like the embed title to be?")
-      embed_title = await client.wait_for("message")
-      if ctx.author == ctx.author:
-        await ctx.send("And what color would you like for the embed? Type 'none' to have no color.")
-        embed_color = await client.wait_for("message")
-        if ctx.author == ctx.author:
-          await ctx.send("Perfect. Now, please add the emote you wish to be the reaction and then the role you want associated with it! Please only do one  at a time. Ex: :pleading_face:, then @RandomRole")
-          roles_emojis = await client.wait_for("message")
-          if ctx.author == ctx.author:
-            return
   
             
 TOKEN = os.environ.get("DISCORD_BOT_SECRET")
