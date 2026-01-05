@@ -5,9 +5,6 @@ However, The Administrator has grown to be the cornerstone of Auxillium Discord 
 
 Today, The Administrator is used in over 13 servers and growing!
 
-Join this server to see The Administrator in action!
-https://discord.gg/VtfUCjejXq
-
 Current Version: 1.5.2
 
 Version in Progress: 1.6
