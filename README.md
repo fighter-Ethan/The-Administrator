@@ -14,4 +14,4 @@ The following is the full list of commands, for those who don't like snooping ar
 
 | **Command** | **Description** |
 |-------- | -------|
-| help | displays the help command. |
+
